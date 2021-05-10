@@ -22,7 +22,8 @@ export const Button = styled(Link)`
     align-items: center;
 
     &:hover{
-        transform: translateY(-2px);
+        transform: scale(1.1);//Измененние маштаба элемента
+
     }
     
 `;

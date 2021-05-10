@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import styled, { css } from 'styled-components/macro'; //!!!!!!!!!!!!!!!!!!!!!!
 import { Button } from './Button';
 
@@ -53,7 +53,9 @@ const HeroImage = styled.img`
     width: 100vw;
     height: 100vh;
 
-    object-fit: cover; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    object-fit: cover; //Сохраняет пропорции, при изменении внешнего контейнера
+    //Определяет как содержимое элемента должно 
+    //заполнять внешний контейнер относительно его ширины и высоты
 `;
 const HeroContent = styled.div`
     position: relative;
@@ -63,12 +65,12 @@ const HeroContent = styled.div`
     flex-direction: column;
 
     max-width: 1600px;
-    width: calc(100% - 100px);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    width: calc(100% - 100px);//Расчитывает свойства
     
     color: #fff;
 
     h1{
-        font-size: clamp(1rem, 8vw, 2rem); //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        font-size: clamp(1rem, 8vw, 2rem); //clamp(min, предпочтительное, max)
 
         font-weight: 400px;
         text-transform: uppercase;
@@ -111,7 +113,7 @@ const SliderButtons = styled.div`
     bottom: 50px;
     right: 50px;
     
-    display: flex; // Why?
+    display: flex;
     z-index: 10;
 `;
 
@@ -128,32 +130,58 @@ const Hero = ({ slides }) => {
 
     let [current, setCurrent] = useState(0);
     const length = slides.length;
-    const timeOut = useRef(null); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    const timeout = useRef(null); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    useEffect(() => {// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        const nextSlide = () => {
+            setCurrent(current => (current === length - 1 ? 0 : current + 1));
+        }
+
+        timeout.current = setTimeout(nextSlide, 1000);// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        return function () {// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            if (timeout.current) {
+                clearTimeout(timeout.current);// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            }
+        }
+    }, [current, length]);
 
     const nextSlide = () => {
+        if (timeout.current) {
+            clearTimeout(timeout.current);
+        }
+
         setCurrent(current === length - 1 ? 0 : current + 1);
-    }
+    };
 
 
     const prevSlide = () => {
+        if (timeout.current) {
+            clearTimeout(timeout.current);
+        }
+
         setCurrent(current === 0 ? length - 1 : current - 1); // Почему не работает инкремент
+    };
+
+
+    if (!Array.isArray(slides) || slides.length <= 0) {
+        return null;
     }
 
-    debugger;
     return (
         <HeroSection>
             < HeroWraper >
                 {slides.map((slide, index) => (
-                    <HeroSlide  key={index}>
+                    <HeroSlide key={index}>
                         {
-                            index === current && ( //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                            index === current && ( //как я понял, здесь используется 
                                 <HeroSlider>
                                     <HeroImage src={slide.image} alt={slide.alt} />
                                     <HeroContent>
                                         <h1>{slide.title}</h1>
                                         <p>{slide.price}</p>
                                         <Button to={slide.path} primary="true"
-                                            css={`
+                                            css={`//Это специальный синтаксис
                                         max-width: 160px;
                                     `}
                                         >
